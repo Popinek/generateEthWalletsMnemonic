@@ -1,11 +1,38 @@
+import requests
+import time
 from web3 import Web3
 from eth_account import Account
 import os
 
 # Initialize web3 provider
-web3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/xxxxxYOURinfuraKEYxxxxxxx'))
+web3_infura = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/xxxxxYOURinfuraKEYxxxxxxx'))
 
-def check_balance_and_save(accounts_file, output_file):
+# Etherscan API URL and key
+ETHERSCAN_API_URL = "https://api.etherscan.io/api"
+ETHERSCAN_API_KEY = "xxxxxYOURetherscanKEYxxxxxxx"
+
+def check_eth_balance_infura(address):
+    return web3_infura.eth.get_balance(address)
+
+def check_eth_balance_etherscan(address):
+    response = requests.get(ETHERSCAN_API_URL, params={
+        'module': 'account',
+        'action': 'balance',
+        'address': address,
+        'tag': 'latest',
+        'apikey': ETHERSCAN_API_KEY
+    })
+    return int(response.json().get('result', 0))
+
+def check_eth_balance(address, use_infura=True):
+    if use_infura:
+        balance = check_eth_balance_infura(Web3.to_checksum_address(address))
+    else:
+        balance = check_eth_balance_etherscan(Web3.to_checksum_address(address))
+    return balance
+
+def check_balances_and_save(accounts_file, output_file, use_infura=True):
+
     # Read addresses from address.txt
     with open(accounts_file, 'r') as f:
         addresses = f.readlines()
@@ -14,19 +41,20 @@ def check_balance_and_save(accounts_file, output_file):
     num_addresses_checked = 0
     num_addresses_with_balance = 0
 
-    # Check balance for each address
+    # Check balances for each address
     addresses_with_balance = []
     for address in addresses:
-        balance = web3.eth.get_balance(address)
+        balance = check_eth_balance(address, use_infura)
         num_addresses_checked += 1
         if balance > 0:
-            addresses_with_balance.append(address)
+            addresses_with_balance.append((address, balance))
             num_addresses_with_balance += 1
 
     # Write addresses with non-zero balance to balance.txt
-    with open(output_file, 'w') as f:
-        for address in addresses_with_balance:
-            f.write(address + '\n')
+    with open(output_file, 'a') as f:
+        for address, balance in addresses_with_balance:
+            mnemonic = next(wallet["mnemonic_phrase"] for wallet in wallets if wallet["address"] == address)
+            f.write(f"Address: {address}, Balance: {balance}, Mnemonic: {mnemonic}\n")
 
     print(f"Checked {num_addresses_checked} addresses.")
     print(f"Found {num_addresses_with_balance} addresses with non-zero balance.")
@@ -53,7 +81,7 @@ def generate_eth_wallets(num_wallets):
     return wallets
 
 if __name__ == '__main__':
-    num_wallets_to_generate = 1000  # Specify the number of Ethereum wallets to generate
+    num_wallets_to_generate = 10  # Specify the number of Ethereum wallets to generate
     wallets = generate_eth_wallets(num_wallets_to_generate)
 
     # Write mnemonic phrases to mnemonic.txt
@@ -72,4 +100,4 @@ if __name__ == '__main__':
     output_file = 'balance.txt'
 
     #   Uncomment to check balances from address.txt
-    # check_balance_and_save(accounts_file, output_file)
+    check_balances_and_save(accounts_file, output_file, use_infura=True)
