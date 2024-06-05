@@ -8,6 +8,9 @@ This repository contains Python scripts to create Ethereum wallets efficiently. 
 
 2. **Balance Checking:** The `check_balance_and_save` function in [`main.py`](main.py) checks the balance of Ethereum addresses listed in `address.txt`. If an address has a non-zero balance, it saves it to `balance.txt`. This feature utilizes the `web3.py` library for interacting with the Ethereum blockchain.
 
+3. **Check up to 200k wallets for free:** Newly added Etherscan api allows to check up additional 100k wallets for free. You can also use the old Infura api that also allows 100k wallets check up. I recommend to use Infura because it works faster and isnt capped to check only 5 addresses per second as Etherscan api.
+
+   
 ### Setup:
 
 1. Install dependencies:
