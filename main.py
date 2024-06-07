@@ -2,6 +2,7 @@ import requests
 import time
 from web3 import Web3
 from eth_account import Account
+import winsound
 
 import os
 
@@ -11,9 +12,9 @@ CONFIG = {
     'use_etherscan': False,
     'check_transactions_only': False,
     'num_wallets_to_generate': 10,
-    'infura_url': 'https://mainnet.infura.io/v3/xxxxxxxxxxxxx',
+    'infura_url': 'https://mainnet.infura.io/v3/xxxxxxxxx',
     'etherscan_api_url': 'https://api.etherscan.io/api',
-    'etherscan_api_key': 'xxxxxxxxxxxxxxxxxx'
+    'etherscan_api_key': 'xxxxxxxxxx'
 }
 
 # Initialize web3 provider
@@ -126,5 +127,6 @@ if __name__ == '__main__':
     # Check balances or transactions from address.txt
     check_balances_and_save(accounts_file, output_file)
 
-
+    # Play system sound to inform the task is done
+    winsound.MessageBeep(winsound.MB_ICONHAND)
 
