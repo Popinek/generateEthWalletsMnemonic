@@ -14,7 +14,7 @@ CONFIG = {
     'use_infura': True,
     'use_etherscan': False,
     'check_transactions_only': False,
-    'num_wallets_to_generate': 100,
+    'num_wallets_to_generate': 5000,
     'infura_url': os.getenv('INFURA_URL'),
     'etherscan_api_url': 'https://api.etherscan.io/api',
     'etherscan_api_key': os.getenv('ETHERSCAN_API_KEY')
@@ -136,11 +136,12 @@ if __name__ == '__main__':
     # End timer
     end_time = time.time()
     elapsed_time = end_time - start_time
+    elapsed_minutes = elapsed_time / 60
 
     # Calculate addresses checked per minute
     addresses_per_minute = (CONFIG['num_wallets_to_generate'] / elapsed_time) * 60
 
-    print(f"Total Elapsed time: {elapsed_time:.2f} seconds.")
+    print(f"Total Elapsed time: {elapsed_time:.2f} seconds or ({elapsed_minutes:.2f} minutes).")
     print(f"Addresses checked per minute: {addresses_per_minute:.2f}.")
     # Play system sound to inform the task is done
     winsound.MessageBeep(winsound.MB_ICONHAND)
