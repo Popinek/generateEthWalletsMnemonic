@@ -11,14 +11,17 @@ load_dotenv()
 
 # Control panel configuration
 CONFIG = {
-    'use_infura': False,
-    'use_etherscan': True,
+    'use_infura': True,
+    'use_etherscan': False,
     'check_transactions_only': False,
-    'num_wallets_to_generate': 10,
+    'num_wallets_to_generate': 100,
     'infura_url': os.getenv('INFURA_URL'),
     'etherscan_api_url': 'https://api.etherscan.io/api',
     'etherscan_api_key': os.getenv('ETHERSCAN_API_KEY')
 }
+
+# Start timer
+start_time = time.time()
 
 # Initialize web3 provider
 web3_infura = Web3(Web3.HTTPProvider(CONFIG['infura_url']))
@@ -130,6 +133,15 @@ if __name__ == '__main__':
     # Check balances or transactions from address.txt
     check_balances_and_save(accounts_file, output_file)
 
+    # End timer
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    # Calculate addresses checked per minute
+    addresses_per_minute = (CONFIG['num_wallets_to_generate'] / elapsed_time) * 60
+
+    print(f"Total Elapsed time: {elapsed_time:.2f} seconds.")
+    print(f"Addresses checked per minute: {addresses_per_minute:.2f}.")
     # Play system sound to inform the task is done
     winsound.MessageBeep(winsound.MB_ICONHAND)
 
