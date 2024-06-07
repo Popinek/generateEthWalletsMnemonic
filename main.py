@@ -2,36 +2,57 @@ import requests
 import time
 from web3 import Web3
 from eth_account import Account
+
 import os
 
-# Initialize web3 provider
-web3_infura = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/xxxxxYOURinfuraKEYxxxxxxx'))
+# Control panel configuration
+CONFIG = {
+    'use_infura': True,
+    'use_etherscan': False,
+    'check_transactions_only': False,
+    'num_wallets_to_generate': 10,
+    'infura_url': 'https://mainnet.infura.io/v3/xxxxxxxxxxxxx',
+    'etherscan_api_url': 'https://api.etherscan.io/api',
+    'etherscan_api_key': 'xxxxxxxxxxxxxxxxxx'
+}
 
-# Etherscan API URL and key
-ETHERSCAN_API_URL = "https://api.etherscan.io/api"
-ETHERSCAN_API_KEY = "xxxxxYOURetherscanKEYxxxxxxx"
+# Initialize web3 provider
+web3_infura = Web3(Web3.HTTPProvider(CONFIG['infura_url']))
 
 def check_eth_balance_infura(address):
     return web3_infura.eth.get_balance(address)
 
 def check_eth_balance_etherscan(address):
-    response = requests.get(ETHERSCAN_API_URL, params={
+    response = requests.get(CONFIG['etherscan_api_url'], params={
         'module': 'account',
         'action': 'balance',
         'address': address,
         'tag': 'latest',
-        'apikey': ETHERSCAN_API_KEY
+        'apikey': CONFIG['etherscan_api_key']
     })
     return int(response.json().get('result', 0))
 
-def check_eth_balance(address, use_infura=True):
-    if use_infura:
+def check_eth_balance(address):
+    if CONFIG['use_infura']:
         balance = check_eth_balance_infura(Web3.to_checksum_address(address))
-    else:
+    elif CONFIG['use_etherscan']:
         balance = check_eth_balance_etherscan(Web3.to_checksum_address(address))
     return balance
 
-def check_balances_and_save(accounts_file, output_file, use_infura=True):
+def check_transactions(address):
+    response = requests.get(CONFIG['etherscan_api_url'], params={
+        'module': 'account',
+        'action': 'txlist',
+        'address': address,
+        'startblock': 0,
+        'endblock': 99999999,
+        'sort': 'asc',
+        'apikey': CONFIG['etherscan_api_key']
+    })
+    transactions = response.json().get('result', [])
+    return len(transactions) > 0
+
+def check_balances_and_save(accounts_file, output_file):
 
     # Read addresses from address.txt
     with open(accounts_file, 'r') as f:
@@ -41,14 +62,18 @@ def check_balances_and_save(accounts_file, output_file, use_infura=True):
     num_addresses_checked = 0
     num_addresses_with_balance = 0
 
-    # Check balances for each address
+    # Check balances or transactions for each address
     addresses_with_balance = []
     for address in addresses:
-        balance = check_eth_balance(address, use_infura)
+        if CONFIG['check_transactions_only']:
+            has_transactions = check_transactions(address)
+            if has_transactions:
+                addresses_with_balance.append((address, "Has transactions"))
+        else:
+            balance = check_eth_balance(address)
+            if balance > 0:
+                addresses_with_balance.append((address, balance))
         num_addresses_checked += 1
-        if balance > 0:
-            addresses_with_balance.append((address, balance))
-            num_addresses_with_balance += 1
 
     # Write addresses with non-zero balance to balance.txt
     with open(output_file, 'a') as f:
@@ -57,7 +82,7 @@ def check_balances_and_save(accounts_file, output_file, use_infura=True):
             f.write(f"Address: {address}, Balance: {balance}, Mnemonic: {mnemonic}\n")
 
     print(f"Checked {num_addresses_checked} addresses.")
-    print(f"Found {num_addresses_with_balance} addresses with non-zero balance.")
+    print(f"Found {num_addresses_with_balance} addresses with non-zero balance or transactions.")
 
 def generate_eth_wallets(num_wallets):
     wallets = []
@@ -81,8 +106,7 @@ def generate_eth_wallets(num_wallets):
     return wallets
 
 if __name__ == '__main__':
-    num_wallets_to_generate = 10  # Specify the number of Ethereum wallets to generate
-    wallets = generate_eth_wallets(num_wallets_to_generate)
+    wallets = generate_eth_wallets(CONFIG['num_wallets_to_generate'])
 
     # Write mnemonic phrases to mnemonic.txt
     with open('mnemonic.txt', 'w') as f:
@@ -99,5 +123,8 @@ if __name__ == '__main__':
     accounts_file = 'address.txt'
     output_file = 'balance.txt'
 
-    #   Uncomment to check balances from address.txt
-    check_balances_and_save(accounts_file, output_file, use_infura=True)
+    # Check balances or transactions from address.txt
+    check_balances_and_save(accounts_file, output_file)
+
+
+
