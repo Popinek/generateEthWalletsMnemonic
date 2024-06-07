@@ -2,19 +2,22 @@ import requests
 import time
 from web3 import Web3
 from eth_account import Account
+from dotenv import load_dotenv
 import winsound
-
 import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Control panel configuration
 CONFIG = {
-    'use_infura': True,
-    'use_etherscan': False,
+    'use_infura': False,
+    'use_etherscan': True,
     'check_transactions_only': False,
     'num_wallets_to_generate': 10,
-    'infura_url': 'https://mainnet.infura.io/v3/xxxxxxxxx',
+    'infura_url': os.getenv('INFURA_URL'),
     'etherscan_api_url': 'https://api.etherscan.io/api',
-    'etherscan_api_key': 'xxxxxxxxxx'
+    'etherscan_api_key': os.getenv('ETHERSCAN_API_KEY')
 }
 
 # Initialize web3 provider
