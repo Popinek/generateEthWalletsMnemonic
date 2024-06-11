@@ -15,12 +15,12 @@ CONFIG = {
     'use_infura': True,
     'use_etherscan': False,
     'check_transactions_only': False,
-    'num_wallets_to_generate': 10000,
+    'num_wallets_to_generate': 1000,
     'infura_url': os.getenv('INFURA_URL'),
     'etherscan_api_url': 'https://api.etherscan.io/api',
     'etherscan_api_key': os.getenv('ETHERSCAN_API_KEY'),
     'wallet_max_workers': 4,  # Number of processes for generating wallets
-    'check_max_workers': 2  # Number of processes for checking balances or transactions. Use max 3 for Infura, 2 for Etherscan
+    'check_max_workers': 4  # Number of processes for checking balances or transactions. Use max 3 for Infura, 2 for Etherscan
 }
 
 # Initialize web3 provider
@@ -28,7 +28,15 @@ web3_infura = Web3(Web3.HTTPProvider(CONFIG['infura_url']))
 
 
 def check_eth_balance_infura(address):
-    return web3_infura.eth.get_balance(address)
+    while True:
+        try:
+            return web3_infura.eth.get_balance(address)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429:  # Too Many Requests
+                print("Too many requests. Retrying in 5 seconds...")
+                time.sleep(5)
+            else:
+                raise  # Re-raise the exception if it's not a 429 error
 
 
 def check_eth_balance_etherscan(address):
