@@ -1,6 +1,6 @@
 ## Generate Ethereum wallets with mnemonic phrases and check balances
 
-This repository contains Python scripts to create Ethereum wallets efficiently. It includes functionalities to generate Ethereum wallets with mnemonic phrases, save them to files, and check the balance of addresses stored in `address.txt`.
+This repository contains Python scripts to create Ethereum wallets in bulk efficiently. It includes functionalities to generate thousands Ethereum wallets with mnemonic phrases, save them to files, and check the balance of addresses stored in `address.txt`.
 
 ### Features:
 
